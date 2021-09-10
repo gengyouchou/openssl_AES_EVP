@@ -4,10 +4,13 @@
 #include <openssl/err.h>
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
-#include <arpa/inet.h> /* For htonl() */
+//#include <arpa/inet.h> /* For htonl() */
+//#include <winsock2.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+//#pragma comment(lib,"ws2_32.lib")
+
 
 //#ifndef CRYPTO_H
 //#define CRYPTO_H

@@ -61,16 +61,16 @@ int envelope::writeKeyToFile(FILE *file, int key) {
 int envelope::do_evp_seal(FILE *rsa_pkey_file, FILE *in_file, FILE *out_file)
 {
     int retval = 0;
-    RSA *rsa_pkey = NULL;
+    RSA *rsa_pkey=NULL;
     EVP_PKEY *pkey = EVP_PKEY_new();
     EVP_CIPHER_CTX *ctx=EVP_CIPHER_CTX_new();
     unsigned char buffer[4096];
     unsigned char buffer_out[4096 + EVP_MAX_IV_LENGTH];
-    size_t len;
-    int len_out;
+    size_t len=0;
+    int len_out=0;
     unsigned char *ek;
-    int eklen;
-    uint32_t eklen_n;
+    size_t eklen=0;
+    //uint32_t eklen_n=0;
     unsigned char iv[EVP_MAX_IV_LENGTH];
 
     if (!PEM_read_RSA_PUBKEY(rsa_pkey_file, &rsa_pkey, NULL, NULL))
@@ -81,41 +81,50 @@ int envelope::do_evp_seal(FILE *rsa_pkey_file, FILE *in_file, FILE *out_file)
         goto out;
     }
 
+    printf("-1");
+
     if (!EVP_PKEY_assign_RSA(pkey, rsa_pkey))
     {
         fprintf(stderr, "EVP_PKEY_assign_RSA: failed.\n");
         retval = 3;
         goto out;
     }
+
+    printf("-2");
     
     EVP_CIPHER_CTX_init(ctx);
     ek = (unsigned char*)malloc(EVP_PKEY_size(pkey));
-    if (!EVP_SealInit(ctx, EVP_aes_128_cbc(), &ek, &eklen, iv, &pkey, 1))
+    if (!EVP_SealInit(ctx, EVP_aes_128_cbc(), &ek, (int*)&eklen, iv, &pkey, 1))
     {
         fprintf(stderr, "EVP_SealInit: failed.\n");
         retval = 3;
         goto out_free;
     }
+
+    printf("0");
    
     /* First we write out the encrypted key length, then the encrypted key,
      * then the iv (the IV length is fixed by the cipher we have chosen).
      */
 
-    eklen_n = htonl(eklen);
-    if (fwrite(&eklen_n, sizeof eklen_n, 1, out_file) != 1)
+    //eklen_n = htonl(eklen);
+    if (fwrite(&eklen, sizeof eklen, 1, out_file) != 1)
     {
+        printf("1");
         perror("output file");
         retval = 5;
         goto out_free;
     }
     if (fwrite(ek, eklen, 1, out_file) != 1)
     {
+        printf("2");
         perror("output file");
         retval = 5;
         goto out_free;
     }
     if (fwrite(iv, EVP_CIPHER_iv_length(EVP_aes_128_cbc()), 1, out_file) != 1)
     {
+        printf("3");
         perror("output file");
         retval = 5;
         goto out_free;
@@ -124,6 +133,10 @@ int envelope::do_evp_seal(FILE *rsa_pkey_file, FILE *in_file, FILE *out_file)
     /* Now we process the input file and write the encrypted data to the
      * output file. */
     fprintf(stderr, "Start encrypt\n");
+    printf("eklen_n:%d\n", eklen);
+    printf("eklen_n:%c\n", ek);
+    printf("eklen_n:%d\n", iv);
+    printf("eklen_n:%d\n", pkey);
 
     while ((len = fread(buffer, 1, sizeof buffer, in_file)) > 0)
     {
@@ -177,16 +190,16 @@ int envelope::do_evp_seal(FILE *rsa_pkey_file, FILE *in_file, FILE *out_file)
 int envelope :: do_evp_unseal(FILE *rsa_pkey_file, FILE *in_file, FILE *out_file)
 {
     int retval = 0;
-    RSA *rsa_pkey = NULL;
+    RSA *rsa_pkey=NULL;
     EVP_PKEY *pkey = EVP_PKEY_new();
     EVP_CIPHER_CTX *ctx=EVP_CIPHER_CTX_new();
     unsigned char buffer[4096];
     unsigned char buffer_out[4096 + EVP_MAX_IV_LENGTH];
-    size_t len;
-    int len_out;
+    size_t len=0;
+    int len_out=0;
     unsigned char *ek;
-    unsigned int eklen;
-    uint32_t eklen_n;
+    size_t eklen=0;
+    //int eklen_n=0;
     unsigned char iv[EVP_MAX_IV_LENGTH];
 
     if (!PEM_read_RSAPrivateKey(rsa_pkey_file, &rsa_pkey, NULL, NULL))
@@ -209,13 +222,13 @@ int envelope :: do_evp_unseal(FILE *rsa_pkey_file, FILE *in_file, FILE *out_file
 
     /* First need to fetch the encrypted key length, encrypted key and IV */
 
-    if (fread(&eklen_n, sizeof eklen_n, 1, in_file) != 1)
+    if (fread(&eklen, sizeof eklen, 1, in_file) != 1)
     {
         perror("input file");
         retval = 4;
         goto out_free;
     }
-    eklen = ntohl(eklen_n);
+    //eklen = ntohl(eklen_n);
     if (eklen > EVP_PKEY_size(pkey))
     {
         fprintf(stderr, "Bad encrypted key length (%u > %d)\n", eklen,
@@ -235,7 +248,10 @@ int envelope :: do_evp_unseal(FILE *rsa_pkey_file, FILE *in_file, FILE *out_file
         retval = 4;
         goto out_free;
     }
-
+    printf("eklen_n:%d\n", eklen);
+    printf("eklen_n:%c\n", ek);
+    printf("eklen_n:%d\n", iv);
+    printf("eklen_n:%d\n", pkey);
     if (!EVP_OpenInit(ctx, EVP_aes_128_cbc(), ek, eklen, iv, pkey))
     {
         fprintf(stderr, "EVP_OpenInit: failed.\n");

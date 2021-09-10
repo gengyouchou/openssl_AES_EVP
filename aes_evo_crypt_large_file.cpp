@@ -1,4 +1,6 @@
 #include "envelope.h"
+#include <openssl\applink.c>
+
 
 char* appendToString(char *string, char *suffix) {
   char *appenedString = (char*)malloc(strlen(string) + strlen(suffix) + 1);
@@ -26,7 +28,7 @@ int main(int argc, char **argv)
     if(*argv[1]=='0'){//generateRsaKeypair
       env.generateRsaKeypair();
       FILE *rsa_pkey_file;
-      rsa_pkey_file = fopen(argv[2], "w");
+      rsa_pkey_file = fopen(appendToString(argv[2], (char*)".txt"), "wb");
     if (!rsa_pkey_file)
     {
         perror(argv[1]);
@@ -34,7 +36,7 @@ int main(int argc, char **argv)
         exit(2);
     }
      FILE *rsa_prikey_file;
-     rsa_prikey_file = fopen(argv[3], "w");
+     rsa_prikey_file = fopen(appendToString(argv[3], (char*)".txt"), "wb");
     if (!rsa_prikey_file)
     {
         perror(argv[1]);
@@ -45,8 +47,11 @@ int main(int argc, char **argv)
      // Write the RSA keys to stdout
      env.writeKeyToFile(rsa_prikey_file, KEY_SERVER_PRI);
      env.writeKeyToFile(rsa_pkey_file, KEY_SERVER_PUB);
-     fclose(rsa_pkey_file);
+     
      fprintf(stderr, "Successfully generate RSA key pair.\n");
+
+     fclose(rsa_pkey_file);
+     fclose(rsa_prikey_file);
     
     }else if(*argv[1]=='1'){//encrypt
     FILE *rsa_pkey_file;
@@ -66,7 +71,7 @@ int main(int argc, char **argv)
         exit(2);
     }
 
-    FILE *decrypt_file = fopen(appendToString(argv[3],(char*)".enc"), "w");
+    FILE *decrypt_file = fopen(appendToString(argv[3],(char*)".enc"), "wb");
     if (!decrypt_file)
     {
         perror(argv[1]);
@@ -99,7 +104,7 @@ int main(int argc, char **argv)
         exit(2);
     }
 
-    FILE *decrypt_file = fopen(appendToString(argv[3],(char*)".dec"), "w");
+    FILE *decrypt_file = fopen(appendToString(argv[3],(char*)".dec"), "wb");
     if (!decrypt_file)
     {
         perror(argv[1]);
