@@ -18,7 +18,9 @@ int main(int argc, char **argv)
 {
     if (argc != 4)
     {
-        fprintf(stderr, "Usage: %s <argc error>\n", argv[0]);
+        fprintf(stderr, "Generate RSA keypair usage: aes_evo(0,Public Key filename,Private Key name)\n");
+        fprintf(stderr, "Encrypt envelope usage: aes_evo(1,PublicKey filename,Encrypt filename)\n");
+        fprintf(stderr, "Decrypt envelope usage: aes_evo(2,PrivateKey filename,Encrypted filename)\n");
         exit(1);
     }
 

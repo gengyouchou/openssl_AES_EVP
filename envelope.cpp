@@ -133,10 +133,6 @@ int envelope::do_evp_seal(FILE *rsa_pkey_file, FILE *in_file, FILE *out_file)
     /* Now we process the input file and write the encrypted data to the
      * output file. */
     fprintf(stderr, "Start encrypt\n");
-    printf("eklen_n:%d\n", eklen);
-    printf("eklen_n:%c\n", ek);
-    printf("eklen_n:%d\n", iv);
-    printf("eklen_n:%d\n", pkey);
 
     while ((len = fread(buffer, 1, sizeof buffer, in_file)) > 0)
     {
@@ -248,10 +244,6 @@ int envelope :: do_evp_unseal(FILE *rsa_pkey_file, FILE *in_file, FILE *out_file
         retval = 4;
         goto out_free;
     }
-    printf("eklen_n:%d\n", eklen);
-    printf("eklen_n:%c\n", ek);
-    printf("eklen_n:%d\n", iv);
-    printf("eklen_n:%d\n", pkey);
     if (!EVP_OpenInit(ctx, EVP_aes_128_cbc(), ek, eklen, iv, pkey))
     {
         fprintf(stderr, "EVP_OpenInit: failed.\n");
