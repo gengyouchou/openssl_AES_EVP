@@ -67,7 +67,7 @@ int envelope::do_evp_seal(FILE *rsa_pkey_file, FILE *in_file, FILE *out_file)
     unsigned char buffer[4096];
     unsigned char buffer_out[4096 + EVP_MAX_IV_LENGTH];
     size_t len=0;
-    int len_out=0;
+    size_t len_out=0;
     unsigned char *ek;
     size_t eklen=0;
     //uint32_t eklen_n=0;
@@ -136,7 +136,7 @@ int envelope::do_evp_seal(FILE *rsa_pkey_file, FILE *in_file, FILE *out_file)
 
     while ((len = fread(buffer, 1, sizeof buffer, in_file)) > 0)
     {
-        if (!EVP_SealUpdate(ctx, buffer_out, &len_out, buffer, len))
+        if (!EVP_SealUpdate(ctx, buffer_out, (int*)&len_out, buffer, len))
         {
             fprintf(stderr, "EVP_SealUpdate: failed.\n");
             retval = 3;
@@ -158,7 +158,7 @@ int envelope::do_evp_seal(FILE *rsa_pkey_file, FILE *in_file, FILE *out_file)
         goto out_free;
     }
 
-    if (!EVP_SealFinal(ctx, buffer_out, &len_out))
+    if (!EVP_SealFinal(ctx, buffer_out, (int*)&len_out))
     {
         fprintf(stderr, "EVP_SealFinal: failed.\n");
         retval = 3;
@@ -192,7 +192,7 @@ int envelope :: do_evp_unseal(FILE *rsa_pkey_file, FILE *in_file, FILE *out_file
     unsigned char buffer[4096];
     unsigned char buffer_out[4096 + EVP_MAX_IV_LENGTH];
     size_t len=0;
-    int len_out=0;
+    size_t len_out=0;
     unsigned char *ek;
     size_t eklen=0;
     //int eklen_n=0;
@@ -255,7 +255,7 @@ int envelope :: do_evp_unseal(FILE *rsa_pkey_file, FILE *in_file, FILE *out_file
 
     while ((len = fread(buffer, 1, sizeof buffer, in_file)) > 0)
     {
-        if (!EVP_OpenUpdate(ctx, buffer_out, &len_out, buffer, len))
+        if (!EVP_OpenUpdate(ctx, buffer_out, (int*)&len_out, buffer, len))
         {
             fprintf(stderr, "EVP_OpenUpdate: failed.\n");
             retval = 3;
@@ -277,7 +277,7 @@ int envelope :: do_evp_unseal(FILE *rsa_pkey_file, FILE *in_file, FILE *out_file
         goto out_free;
     }
 
-    if (!EVP_OpenFinal(ctx, buffer_out, &len_out))
+    if (!EVP_OpenFinal(ctx, buffer_out, (int*)&len_out))
     {
         fprintf(stderr, "EVP_OpenFinal: failed.\n");
         retval = 3;
